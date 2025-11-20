@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import ErrorAlert from '../components/ErrorAlert.jsx';
 import BadgeGrid from '../components/BadgeGrid.jsx';
 import CreateBadgeModal from '../components/CreateBadgeModal.jsx';
-import { SparklesIcon, CheckBadgeIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, CheckBadgeIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 const BadgesPage = () => {
   const api = useApi();
@@ -19,32 +19,48 @@ const BadgesPage = () => {
   const [error, setError] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        if (user?.role === 'VOLUNTEER') {
-          const data = await api.getVolunteerGamification();
-          setGamification(data);
-        } else if (user?.role === 'ORGANIZATION' || user?.role === 'ADMIN') {
-          // Organizations load all badges
-          const response = await api.listBadges();
-          const badgesList = Array.isArray(response) ? response : response?.data || [];
-          setBadges(badgesList);
-        }
-      } catch (fetchError) {
-        setError(fetchError.message);
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      if (user?.role === 'VOLUNTEER') {
+        const data = await api.getVolunteerGamification();
+        // Handle both direct data and wrapped response
+        const gamificationData = data?.data || data;
+        setGamification(gamificationData);
+        console.log('Gamification data loaded:', gamificationData);
+        console.log('Badges:', gamificationData?.badges);
+      } else if (user?.role === 'ORGANIZATION' || user?.role === 'ADMIN') {
+        // Organizations load all badges
+        const response = await api.listBadges();
+        const badgesList = Array.isArray(response) ? response : response?.data || [];
+        setBadges(badgesList);
       }
-    };
+    } catch (fetchError) {
+      console.error('Error loading badges:', fetchError);
+      setError(fetchError.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (user?.role) {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role]);
+
+  // Refresh badges when page becomes visible (user might have received new badges)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user?.role === 'VOLUNTEER') {
+        fetchData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [user?.role]);
 
   // Organizations can create badges, volunteers can view their badges
@@ -78,13 +94,19 @@ const BadgesPage = () => {
   // For organizations: all badges
   const volunteerBadges = gamification?.badges || [];
   const allBadges = isOrganization ? badges : volunteerBadges;
-  // Mostrar todos los badges ganados, no solo los MINTED
-  const earnedBadges = volunteerBadges.filter((b) => 
-    b.blockchainStatus === 'MINTED' || b.blockchainStatus === 'PENDING' || !b.blockchainStatus
-  );
+  
+  // Mostrar todos los badges ganados
+  // Un badge puede tener blockchainStatus: 'MINTED', 'PENDING', o null/undefined
+  const earnedBadges = volunteerBadges.filter((b) => {
+    // Mostrar todos los badges que tienen un tokenId o están mintados
+    return b.tokenId || b.blockchainStatus === 'MINTED' || b.blockchainStatus === 'PENDING' || !b.blockchainStatus;
+  });
   const pendingBadges = volunteerBadges.filter((b) => 
-    b.blockchainStatus === 'PENDING'
+    b.blockchainStatus === 'PENDING' && !b.tokenId
   );
+  
+  console.log('Volunteer badges:', volunteerBadges);
+  console.log('Earned badges:', earnedBadges);
 
   return (
     <div className="space-y-6">
@@ -103,7 +125,16 @@ const BadgesPage = () => {
             >
               ✨ Crear Badge
             </button>
-          ) : null
+          ) : (
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark disabled:opacity-50"
+            >
+              <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Actualizar
+            </button>
+          )
         }
       />
 
