@@ -27,7 +27,7 @@ const AssignmentsPage = () => {
   const [error, setError] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
-  const { register, watch } = useForm({
+  const { register, watch, setValue } = useForm({
     defaultValues: { status: '' },
   });
   const statusFilter = watch('status');
@@ -36,10 +36,33 @@ const AssignmentsPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.getMyAssignments(filters);
-      setAssignments(Array.isArray(data) ? data : data?.assignments ?? []);
+      
+      const response = await api.getMyAssignments(filters);
+      
+      // authFetch returns payload?.data ?? payload
+      // Backend returns: { status: 'success', data: [...] }
+      // So response should be the array directly, but handle edge cases
+      let assignmentsList = [];
+      
+      if (Array.isArray(response)) {
+        // Direct array - most common case
+        assignmentsList = response;
+      } else if (response && typeof response === 'object') {
+        // Handle wrapped responses
+        if (Array.isArray(response.data)) {
+          assignmentsList = response.data;
+        } else if (Array.isArray(response.assignments)) {
+          assignmentsList = response.assignments;
+        } else if (response.data && Array.isArray(response.data.assignments)) {
+          assignmentsList = response.data.assignments;
+        }
+      }
+      
+      setAssignments(assignmentsList);
     } catch (fetchError) {
-      setError(fetchError.message);
+      console.error('Error loading assignments:', fetchError);
+      setError(fetchError.message || 'Error al cargar asignaciones');
+      setAssignments([]);
     } finally {
       setLoading(false);
     }
@@ -47,24 +70,31 @@ const AssignmentsPage = () => {
 
   useEffect(() => {
     if (user?.role === 'VOLUNTEER') {
+      console.log('User is volunteer, loading assignments. User ID:', user?.id);
       loadAssignments();
+    } else {
+      console.log('User is not volunteer. Role:', user?.role);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.role]);
+  }, [user?.role, user?.id]);
 
   useEffect(() => {
-    if (statusFilter && user?.role === 'VOLUNTEER') {
-      loadAssignments({ status: statusFilter });
-    } else if (user?.role === 'VOLUNTEER') {
-      loadAssignments();
+    if (user?.role === 'VOLUNTEER') {
+      const filters = statusFilter && statusFilter.trim() !== '' 
+        ? { status: statusFilter } 
+        : {};
+      loadAssignments(filters);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, [statusFilter, user?.role]);
 
   const handleAccept = async (assignmentId) => {
     try {
       await api.acceptAssignment(assignmentId);
-      await loadAssignments({ status: statusFilter });
+      const filters = statusFilter && statusFilter.trim() !== '' 
+        ? { status: statusFilter } 
+        : {};
+      await loadAssignments(filters);
     } catch (err) {
       setError(err.message);
     }
@@ -73,7 +103,10 @@ const AssignmentsPage = () => {
   const handleReject = async (assignmentId, reason) => {
     try {
       await api.rejectAssignment(assignmentId, reason);
-      await loadAssignments({ status: statusFilter });
+      const filters = statusFilter && statusFilter.trim() !== '' 
+        ? { status: statusFilter } 
+        : {};
+      await loadAssignments(filters);
     } catch (err) {
       setError(err.message);
     }
@@ -87,7 +120,10 @@ const AssignmentsPage = () => {
   const handleCompleted = () => {
     setIsCompleteModalOpen(false);
     setSelectedAssignment(null);
-    loadAssignments({ status: statusFilter });
+    const filters = statusFilter && statusFilter.trim() !== '' 
+      ? { status: statusFilter } 
+      : {};
+    loadAssignments(filters);
   };
 
   if (user?.role !== 'VOLUNTEER') {
@@ -157,13 +193,9 @@ const AssignmentsPage = () => {
           return (
             <button
               key={filter.value}
+              type="button"
               onClick={() => {
-                const input = document.querySelector('[name="status"]');
-                if (input) {
-                  input.value = filter.value;
-                  const event = new Event('input', { bubbles: true });
-                  input.dispatchEvent(event);
-                }
+                setValue('status', filter.value);
               }}
               className={`
                 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all
@@ -199,15 +231,21 @@ const AssignmentsPage = () => {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {assignments.map((assignment) => (
-            <AssignmentCard
-              key={assignment.id}
-              assignment={assignment}
-              onAccept={handleAccept}
-              onReject={handleReject}
-              onComplete={handleOpenComplete}
-            />
-          ))}
+          {assignments.map((assignment) => {
+            if (!assignment || !assignment.id) {
+              console.warn('Invalid assignment:', assignment);
+              return null;
+            }
+            return (
+              <AssignmentCard
+                key={assignment.id}
+                assignment={assignment}
+                onAccept={handleAccept}
+                onReject={handleReject}
+                onComplete={handleOpenComplete}
+              />
+            );
+          })}
         </div>
       )}
 

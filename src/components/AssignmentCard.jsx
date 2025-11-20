@@ -62,6 +62,10 @@ const AssignmentCard = ({ assignment, onAccept, onReject, onComplete }) => {
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  if (!assignment) {
+    return null;
+  }
+
   const statusConfig = STATUS_CONFIG[assignment.status] || STATUS_CONFIG.PENDING;
   const StatusIcon = statusConfig.icon;
   const urgencyConfig = URGENCY_CONFIG[assignment.task?.urgency] || URGENCY_CONFIG.MEDIUM;

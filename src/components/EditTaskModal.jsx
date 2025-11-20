@@ -1,12 +1,16 @@
 'use strict';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { XMarkIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PencilIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import useApi from '../hooks/useApi.js';
 
 const EditTaskModal = ({ isOpen, onClose, task, onTaskUpdated, api }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [availableBadges, setAvailableBadges] = useState([]);
+  const [selectedBadgeCodes, setSelectedBadgeCodes] = useState([]);
+  const [loadingBadges, setLoadingBadges] = useState(false);
 
   const {
     register,
@@ -25,6 +29,43 @@ const EditTaskModal = ({ isOpen, onClose, task, onTaskUpdated, api }) => {
     },
   });
 
+  // Load badges and set selected badges from task metadata
+  useEffect(() => {
+    if (isOpen) {
+      loadBadges();
+      // Extract badgeCodes from task metadata
+      if (task?.metadata) {
+        const taskMetadata = typeof task.metadata === 'string' 
+          ? JSON.parse(task.metadata) 
+          : task.metadata;
+        if (taskMetadata.badgeCodes && Array.isArray(taskMetadata.badgeCodes)) {
+          setSelectedBadgeCodes(taskMetadata.badgeCodes);
+        }
+      }
+    }
+  }, [isOpen, task]);
+
+  const loadBadges = async () => {
+    try {
+      setLoadingBadges(true);
+      const response = await api.listBadges();
+      const badgesList = Array.isArray(response) ? response : response?.data || [];
+      setAvailableBadges(badgesList);
+    } catch (err) {
+      console.error('Error loading badges:', err);
+    } finally {
+      setLoadingBadges(false);
+    }
+  };
+
+  const toggleBadge = (badgeCode) => {
+    setSelectedBadgeCodes((prev) =>
+      prev.includes(badgeCode)
+        ? prev.filter((code) => code !== badgeCode)
+        : [...prev, badgeCode]
+    );
+  };
+
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
@@ -36,6 +77,7 @@ const EditTaskModal = ({ isOpen, onClose, task, onTaskUpdated, api }) => {
         skillsRequired: data.skillsRequired
           ? data.skillsRequired.split(',').map((s) => s.trim()).filter(Boolean)
           : [],
+        badgeCodes: selectedBadgeCodes.length > 0 ? selectedBadgeCodes : [],
       };
 
       const updated = await api.updateTask(task.id, payload);
@@ -216,6 +258,74 @@ const EditTaskModal = ({ isOpen, onClose, task, onTaskUpdated, api }) => {
               <p className="text-xs text-muted mt-1">
                 Separa las habilidades con comas
               </p>
+            </div>
+
+            {/* Badge Selection */}
+            <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
+              <label className="flex items-center gap-2 mb-3">
+                <SparklesIcon className="h-5 w-5 text-primary" />
+                <span className="text-sm font-semibold text-ink">
+                  Badges a Otorgar (Opcional)
+                </span>
+              </label>
+              <p className="text-xs text-muted mb-3">
+                Selecciona los badges que los voluntarios recibirán al completar esta tarea
+              </p>
+              {loadingBadges ? (
+                <p className="text-sm text-muted">Cargando badges...</p>
+              ) : availableBadges.length === 0 ? (
+                <p className="text-sm text-muted">
+                  No hay badges disponibles. Crea badges primero en la página de Badges NFT.
+                </p>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-h-48 overflow-y-auto">
+                  {availableBadges.map((badge) => {
+                    const isSelected = selectedBadgeCodes.includes(badge.code);
+                    return (
+                      <button
+                        key={badge.id}
+                        type="button"
+                        onClick={() => toggleBadge(badge.code)}
+                        className={`flex items-center gap-2 rounded-lg border-2 p-2 text-left transition-all ${
+                          isSelected
+                            ? 'border-primary bg-primary/10 shadow-md'
+                            : 'border-slate-200 bg-white hover:border-primary/50'
+                        }`}
+                      >
+                        {badge.iconUrl ? (
+                          <img
+                            src={badge.iconUrl}
+                            alt={badge.name}
+                            className="h-8 w-8 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-8 w-8 items-center justify-center rounded bg-primary/20">
+                            <SparklesIcon className="h-4 w-4 text-primary" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-ink truncate">{badge.name}</p>
+                          <p className="text-[10px] text-muted truncate">
+                            {badge.level} • {badge.code}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <div className="rounded-full bg-primary p-1">
+                            <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {selectedBadgeCodes.length > 0 && (
+                <p className="mt-2 text-xs text-primary font-semibold">
+                  {selectedBadgeCodes.length} badge{selectedBadgeCodes.length !== 1 ? 's' : ''} seleccionado{selectedBadgeCodes.length !== 1 ? 's' : ''}
+                </p>
+              )}
             </div>
 
             {/* Actions */}

@@ -3,10 +3,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import InputField from './InputField.jsx';
 import ErrorAlert from './ErrorAlert.jsx';
+import useApi from '../hooks/useApi.js';
 
 const schema = z.object({
   title: z.string().min(5, 'El título debe tener al menos 5 caracteres').max(180),
@@ -22,11 +23,15 @@ const schema = z.object({
 
 const CreateTaskModal = ({ isOpen, onClose, onTaskCreated, api, organizationId }) => {
   const [serverError, setServerError] = useState(null);
+  const [availableBadges, setAvailableBadges] = useState([]);
+  const [selectedBadgeCodes, setSelectedBadgeCodes] = useState([]);
+  const [loadingBadges, setLoadingBadges] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    watch,
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -41,6 +46,34 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated, api, organizationId }
       endAt: '',
     },
   });
+
+  // Load badges when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadBadges();
+    }
+  }, [isOpen]);
+
+  const loadBadges = async () => {
+    try {
+      setLoadingBadges(true);
+      const response = await api.listBadges();
+      const badgesList = Array.isArray(response) ? response : response?.data || [];
+      setAvailableBadges(badgesList);
+    } catch (err) {
+      console.error('Error loading badges:', err);
+    } finally {
+      setLoadingBadges(false);
+    }
+  };
+
+  const toggleBadge = (badgeCode) => {
+    setSelectedBadgeCodes((prev) =>
+      prev.includes(badgeCode)
+        ? prev.filter((code) => code !== badgeCode)
+        : [...prev, badgeCode]
+    );
+  };
 
   const onSubmit = async (values) => {
     try {
@@ -62,10 +95,12 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated, api, organizationId }
         volunteersNeeded: parseInt(values.volunteersNeeded, 10),
         startAt: new Date(values.startAt).toISOString(),
         endAt: new Date(values.endAt).toISOString(),
+        badgeCodes: selectedBadgeCodes.length > 0 ? selectedBadgeCodes : undefined,
       };
 
       const result = await api.createTask(payload);
       reset();
+      setSelectedBadgeCodes([]);
       onTaskCreated(result);
       onClose();
     } catch (error) {
@@ -203,6 +238,74 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated, api, organizationId }
                 <span className="text-xs text-red-600">{errors.endAt.message}</span>
               ) : null}
             </label>
+          </div>
+
+          {/* Badge Selection */}
+          <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4">
+            <label className="flex items-center gap-2 mb-3">
+              <SparklesIcon className="h-5 w-5 text-primary" />
+              <span className="text-sm font-semibold text-ink">
+                Badges a Otorgar (Opcional)
+              </span>
+            </label>
+            <p className="text-xs text-muted mb-3">
+              Selecciona los badges que los voluntarios recibirán al completar esta tarea
+            </p>
+            {loadingBadges ? (
+              <p className="text-sm text-muted">Cargando badges...</p>
+            ) : availableBadges.length === 0 ? (
+              <p className="text-sm text-muted">
+                No hay badges disponibles. Crea badges primero en la página de Badges NFT.
+              </p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-h-48 overflow-y-auto">
+                {availableBadges.map((badge) => {
+                  const isSelected = selectedBadgeCodes.includes(badge.code);
+                  return (
+                    <button
+                      key={badge.id}
+                      type="button"
+                      onClick={() => toggleBadge(badge.code)}
+                      className={`flex items-center gap-2 rounded-lg border-2 p-2 text-left transition-all ${
+                        isSelected
+                          ? 'border-primary bg-primary/10 shadow-md'
+                          : 'border-slate-200 bg-white hover:border-primary/50'
+                      }`}
+                    >
+                      {badge.iconUrl ? (
+                        <img
+                          src={badge.iconUrl}
+                          alt={badge.name}
+                          className="h-8 w-8 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded bg-primary/20">
+                          <SparklesIcon className="h-4 w-4 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-ink truncate">{badge.name}</p>
+                        <p className="text-[10px] text-muted truncate">
+                          {badge.level} • {badge.code}
+                        </p>
+                      </div>
+                      {isSelected && (
+                        <div className="rounded-full bg-primary p-1">
+                          <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {selectedBadgeCodes.length > 0 && (
+              <p className="mt-2 text-xs text-primary font-semibold">
+                {selectedBadgeCodes.length} badge{selectedBadgeCodes.length !== 1 ? 's' : ''} seleccionado{selectedBadgeCodes.length !== 1 ? 's' : ''}
+              </p>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">
