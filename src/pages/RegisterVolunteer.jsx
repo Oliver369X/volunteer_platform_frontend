@@ -180,12 +180,13 @@ const RegisterVolunteer = () => {
             {isSubmitting ? 'Registrando...' : 'Crear mi cuenta solidaria'}
           </button>
         </form>
-        <p className="mt-6 text-center text-sm text-muted">
-          ¿Ya tienes una cuenta?{' '}
-          <Link className="font-semibold text-primary hover:underline" to="/auth/login">
-            Inicia sesión
-          </Link>
-        </p>
+          <p className="mt-6 text-center text-sm text-muted">
+            ¿Ya tienes una cuenta?{' '}
+            <Link className="font-semibold text-primary hover:underline" to="/auth/login">
+              Inicia sesión
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
