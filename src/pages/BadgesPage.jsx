@@ -14,32 +14,35 @@ const BadgesPage = () => {
   const api = useApi();
   const { user } = useAuth();
   const [gamification, setGamification] = useState(null);
+  const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchGamification = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await api.getVolunteerGamification();
-        setGamification(data);
-      } catch (fetchError) {
-        // Only set error for volunteers, organizations don't need gamification data
+        
         if (user?.role === 'VOLUNTEER') {
-          setError(fetchError.message);
+          const data = await api.getVolunteerGamification();
+          setGamification(data);
+        } else if (user?.role === 'ORGANIZATION' || user?.role === 'ADMIN') {
+          // Organizations load all badges
+          const response = await api.listBadges();
+          const badgesList = Array.isArray(response) ? response : response?.data || [];
+          setBadges(badgesList);
         }
+      } catch (fetchError) {
+        setError(fetchError.message);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user?.role === 'VOLUNTEER') {
-      fetchGamification();
-    } else if (user?.role === 'ORGANIZATION' || user?.role === 'ADMIN') {
-      // Organizations don't need to load gamification data
-      setLoading(false);
+    if (user?.role) {
+      fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
@@ -71,9 +74,12 @@ const BadgesPage = () => {
     );
   }
 
-  const badges = gamification?.badges || [];
-  const earnedBadges = badges.filter((b) => b.blockchainStatus === 'MINTED');
-  const pendingBadges = badges.filter((b) => b.blockchainStatus === 'PENDING');
+  // For volunteers: badges from gamification
+  // For organizations: all badges
+  const volunteerBadges = gamification?.badges || [];
+  const allBadges = isOrganization ? badges : volunteerBadges;
+  const earnedBadges = volunteerBadges.filter((b) => b.blockchainStatus === 'MINTED');
+  const pendingBadges = volunteerBadges.filter((b) => b.blockchainStatus === 'PENDING');
 
   return (
     <div className="space-y-6">
@@ -153,8 +159,34 @@ const BadgesPage = () => {
         </div>
       ) : null}
 
+      {/* Badges List - Para organizaciones */}
+      {isOrganization && allBadges.length > 0 && (
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-ink">✨ Badges Creados ({allBadges.length})</h2>
+          <BadgeGrid badges={allBadges} showBlockchainInfo={false} />
+        </div>
+      )}
+
+      {isOrganization && allBadges.length === 0 && (
+        <div className="flex min-h-[300px] items-center justify-center rounded-xl border border-slate-200 bg-white p-8">
+          <div className="text-center">
+            <SparklesIcon className="mx-auto h-16 w-16 text-slate-300" />
+            <h3 className="mt-4 text-lg font-semibold text-ink">Aún no has creado badges</h3>
+            <p className="mt-2 text-sm text-muted">
+              Crea badges NFT para reconocer a los voluntarios por sus logros.
+            </p>
+            <button
+              className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              ✨ Crear Primer Badge
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sin Badges - Solo para voluntarios */}
-      {isVolunteer && badges.length === 0 ? (
+      {isVolunteer && volunteerBadges.length === 0 ? (
         <div className="flex min-h-[300px] items-center justify-center rounded-xl border border-slate-200 bg-white p-8">
           <div className="text-center">
             <SparklesIcon className="mx-auto h-16 w-16 text-slate-300" />
@@ -192,7 +224,13 @@ const BadgesPage = () => {
           onClose={() => setIsCreateModalOpen(false)}
           onBadgeCreated={(badge) => {
             setIsCreateModalOpen(false);
-            // Optionally reload or show success message
+            // Reload badges list
+            if (isOrganization) {
+              api.listBadges().then((response) => {
+                const badgesList = Array.isArray(response) ? response : response?.data || [];
+                setBadges(badgesList);
+              });
+            }
           }}
           api={api}
         />

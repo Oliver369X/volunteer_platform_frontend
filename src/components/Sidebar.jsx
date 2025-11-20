@@ -26,6 +26,7 @@ const linksByRole = {
     { to: '/dashboard/tasks', label: 'Tareas', icon: CommandLineIcon, badge: null },
     { to: '/dashboard/calendar', label: 'Calendario', icon: CalendarDaysIcon, badge: '📅' },
     { to: '/dashboard/matching', label: 'Asignación IA', icon: UsersIcon, badge: '🤖' },
+    { to: '/dashboard/badges', label: 'Badges NFT', icon: SparklesIcon, badge: '✨' },
     { to: '/dashboard/reports', label: 'Reportes', icon: ChartBarIcon, badge: '📊' },
     { to: '/dashboard/volunteers', label: 'Voluntarios', icon: UserGroupIcon, badge: null },
   ],

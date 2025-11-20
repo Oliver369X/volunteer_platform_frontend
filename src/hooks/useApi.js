@@ -139,6 +139,14 @@ const useApi = () => {
   // ============================================
   // BADGES - Gestión de Badges NFT
   // ============================================
+  const listBadges = useCallback(
+    async (params) => {
+      const query = buildQueryString(params);
+      return authFetch(`/gamification/badges${query}`);
+    },
+    [authFetch],
+  );
+
   const createBadge = useCallback(
     async (payload, iconFile) => {
       const formData = new FormData();
@@ -257,6 +265,7 @@ const useApi = () => {
     // Gamification
     getVolunteerGamification,
     getLeaderboard,
+    listBadges,
     createBadge,
     
     // Organizations
