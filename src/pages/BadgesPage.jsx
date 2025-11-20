@@ -78,8 +78,13 @@ const BadgesPage = () => {
   // For organizations: all badges
   const volunteerBadges = gamification?.badges || [];
   const allBadges = isOrganization ? badges : volunteerBadges;
-  const earnedBadges = volunteerBadges.filter((b) => b.blockchainStatus === 'MINTED');
-  const pendingBadges = volunteerBadges.filter((b) => b.blockchainStatus === 'PENDING');
+  // Mostrar todos los badges ganados, no solo los MINTED
+  const earnedBadges = volunteerBadges.filter((b) => 
+    b.blockchainStatus === 'MINTED' || b.blockchainStatus === 'PENDING' || !b.blockchainStatus
+  );
+  const pendingBadges = volunteerBadges.filter((b) => 
+    b.blockchainStatus === 'PENDING'
+  );
 
   return (
     <div className="space-y-6">
@@ -146,7 +151,7 @@ const BadgesPage = () => {
       {/* Badges Obtenidos - Solo para voluntarios */}
       {earnedBadges.length > 0 ? (
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-ink">🏆 Badges Verificados en Blockchain</h2>
+          <h2 className="mb-4 text-lg font-semibold text-ink">🏆 Mis Badges Obtenidos ({earnedBadges.length})</h2>
           <BadgeGrid badges={earnedBadges} showBlockchainInfo />
         </div>
       ) : null}

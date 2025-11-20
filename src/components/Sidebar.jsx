@@ -10,6 +10,7 @@ import {
   UserGroupIcon,
   UsersIcon,
   CalendarDaysIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import useAuth from '../hooks/useAuth.js';
 
@@ -24,6 +25,7 @@ const linksByRole = {
   ORGANIZATION: [
     { to: '/dashboard', label: 'Panel', icon: HomeIcon, badge: null },
     { to: '/dashboard/tasks', label: 'Tareas', icon: CommandLineIcon, badge: null },
+    { to: '/dashboard/completed-assignments', label: 'Completadas', icon: CheckCircleIcon, badge: '✅' },
     { to: '/dashboard/calendar', label: 'Calendario', icon: CalendarDaysIcon, badge: '📅' },
     { to: '/dashboard/matching', label: 'Asignación IA', icon: UsersIcon, badge: '🤖' },
     { to: '/dashboard/badges', label: 'Badges NFT', icon: SparklesIcon, badge: '✨' },

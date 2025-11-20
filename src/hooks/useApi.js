@@ -112,6 +112,14 @@ const useApi = () => {
     [authFetch],
   );
 
+  const getOrganizationCompletedAssignments = useCallback(
+    async (params) => {
+      const query = buildQueryString(params);
+      return authFetch(`/gamification/assignments/completed${query}`);
+    },
+    [authFetch],
+  );
+
   const acceptAssignment = useCallback(
     async (assignmentId) =>
       authFetch(`/gamification/assignments/${assignmentId}/accept`, { method: 'POST' }),
@@ -251,6 +259,7 @@ const useApi = () => {
     
     // Assignments
     getMyAssignments,
+    getOrganizationCompletedAssignments,
     acceptAssignment,
     rejectAssignment,
     completeAssignment,

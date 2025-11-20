@@ -8,6 +8,7 @@ import DashboardHome from './pages/DashboardHome.jsx';
 import TasksPage from './pages/TasksPage.jsx';
 import TaskDetailPage from './pages/TaskDetailPage.jsx';
 import AssignmentsPage from './pages/AssignmentsPage.jsx';
+import CompletedAssignmentsPage from './pages/CompletedAssignmentsPage.jsx';
 import MatchingPage from './pages/MatchingPage.jsx';
 import GamificationPage from './pages/GamificationPage.jsx';
 import BadgesPage from './pages/BadgesPage.jsx';
@@ -32,6 +33,7 @@ const App = () => (
         <Route path="/dashboard/tasks" element={<TasksPage />} />
         <Route path="/dashboard/tasks/:taskId" element={<TaskDetailPage />} />
         <Route path="/dashboard/assignments" element={<AssignmentsPage />} />
+        <Route path="/dashboard/completed-assignments" element={<CompletedAssignmentsPage />} />
         <Route path="/dashboard/calendar" element={<CalendarPage />} />
         <Route path="/dashboard/matching" element={<MatchingPage />} />
         <Route path="/dashboard/gamification" element={<GamificationPage />} />

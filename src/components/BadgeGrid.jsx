@@ -67,9 +67,17 @@ const BadgeCard = ({ badge }) => {
       {/* Badge Icon/Emoji grande */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-4xl" role="img" aria-label="badge-icon">
-            {levelStyle.icon}
-          </span>
+          {badge.badge?.iconUrl || badge.iconUrl ? (
+            <img
+              src={badge.badge?.iconUrl || badge.iconUrl}
+              alt={badge.badge?.name || badge.name}
+              className="h-12 w-12 rounded-lg object-cover border-2 border-white shadow-md"
+            />
+          ) : (
+            <span className="text-4xl" role="img" aria-label="badge-icon">
+              {levelStyle.icon}
+            </span>
+          )}
           <div className="flex flex-col">
             <p className="text-sm font-bold text-ink leading-tight">
               {badge.badge?.name ?? badge.name}
@@ -185,7 +193,7 @@ const BadgeCard = ({ badge }) => {
   );
 };
 
-const BadgeGrid = ({ badges = [] }) => {
+const BadgeGrid = ({ badges = [], showBlockchainInfo = true }) => {
   if (!badges.length) {
     return (
       <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white p-8 text-center animate-fade-in">
