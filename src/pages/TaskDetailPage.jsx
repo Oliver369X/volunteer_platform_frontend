@@ -7,6 +7,7 @@ import useAuth from '../hooks/useAuth.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import ErrorAlert from '../components/ErrorAlert.jsx';
 import EditTaskModal from '../components/EditTaskModal.jsx';
+import AssignVolunteerModal from '../components/AssignVolunteerModal.jsx';
 import { formatDateTime } from '../lib/formatters.js';
 import {
   MapPinIcon,
@@ -55,6 +56,7 @@ const TaskDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
   useEffect(() => {
     loadTask();
@@ -227,10 +229,21 @@ const TaskDetailPage = () => {
 
       {/* Voluntarios Asignados */}
       <div className="rounded-2xl border-2 border-slate-200 bg-white p-6 shadow-lg">
-        <h2 className="text-lg font-bold text-ink mb-4 flex items-center gap-2">
-          <UserGroupIcon className="h-6 w-6 text-primary" />
-          Voluntarios Asignados ({assignments.length})
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-ink flex items-center gap-2">
+            <UserGroupIcon className="h-6 w-6 text-primary" />
+            Voluntarios Asignados ({assignments.length})
+          </h2>
+          {canEdit && assignedCount < task.volunteersNeeded && (
+            <button
+              onClick={() => setIsAssignModalOpen(true)}
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all button-hover"
+            >
+              <UserGroupIcon className="h-5 w-5" />
+              Asignar Voluntario
+            </button>
+          )}
+        </div>
 
         {assignments.length === 0 ? (
           <div className="text-center py-8 text-muted">
@@ -310,6 +323,18 @@ const TaskDetailPage = () => {
           setTask(updatedTask);
           setIsEditModalOpen(false);
         }}
+        api={api}
+      />
+
+      {/* Assign Volunteer Modal */}
+      <AssignVolunteerModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        onAssigned={(assignment) => {
+          loadTask(); // Reload task to show new assignment
+          setIsAssignModalOpen(false);
+        }}
+        taskId={taskId}
         api={api}
       />
     </div>

@@ -7,6 +7,7 @@ import PageHeader from '../components/PageHeader.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import ErrorAlert from '../components/ErrorAlert.jsx';
 import BadgeGrid from '../components/BadgeGrid.jsx';
+import CreateBadgeModal from '../components/CreateBadgeModal.jsx';
 import { SparklesIcon, CheckBadgeIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 const BadgesPage = () => {
@@ -15,6 +16,7 @@ const BadgesPage = () => {
   const [gamification, setGamification] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchGamification = async () => {
@@ -24,7 +26,10 @@ const BadgesPage = () => {
         const data = await api.getVolunteerGamification();
         setGamification(data);
       } catch (fetchError) {
-        setError(fetchError.message);
+        // Only set error for volunteers, organizations don't need gamification data
+        if (user?.role === 'VOLUNTEER') {
+          setError(fetchError.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -32,26 +37,34 @@ const BadgesPage = () => {
 
     if (user?.role === 'VOLUNTEER') {
       fetchGamification();
+    } else if (user?.role === 'ORGANIZATION' || user?.role === 'ADMIN') {
+      // Organizations don't need to load gamification data
+      setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
 
-  if (loading) {
+  // Organizations can create badges, volunteers can view their badges
+  const isOrganization = user?.role === 'ORGANIZATION' || user?.role === 'ADMIN';
+  const isVolunteer = user?.role === 'VOLUNTEER';
+
+  // Only show loading/error for volunteers
+  if (isVolunteer && loading) {
     return <LoadingSpinner label="Cargando badges..." />;
   }
 
-  if (error) {
+  if (isVolunteer && error) {
     return <ErrorAlert message={error} />;
   }
 
-  if (user?.role !== 'VOLUNTEER') {
+  if (!isOrganization && !isVolunteer) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
           <SparklesIcon className="mx-auto h-16 w-16 text-slate-300" />
-          <h3 className="mt-4 text-lg font-semibold text-ink">Solo para voluntarios</h3>
+          <h3 className="mt-4 text-lg font-semibold text-ink">Acceso restringido</h3>
           <p className="mt-2 text-sm text-muted">
-            Los badges y NFTs son reconocimientos exclusivos para voluntarios.
+            Esta sección es solo para organizaciones y voluntarios.
           </p>
         </div>
       </div>
@@ -65,12 +78,27 @@ const BadgesPage = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Mis Badges y NFTs"
-        description="Reconocimientos verificables en blockchain por tus logros y contribuciones."
+        title={isOrganization ? 'Gestión de Badges NFT' : 'Mis Badges y NFTs'}
+        description={
+          isOrganization
+            ? 'Crea y gestiona badges NFT para reconocer a los voluntarios.'
+            : 'Reconocimientos verificables en blockchain por tus logros y contribuciones.'
+        }
+        actions={
+          isOrganization ? (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark"
+            >
+              ✨ Crear Badge
+            </button>
+          ) : null
+        }
       />
 
-      {/* Estadísticas */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* Estadísticas - Solo para voluntarios */}
+      {isVolunteer && (
+        <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary/10 p-2">
@@ -107,8 +135,9 @@ const BadgesPage = () => {
           </div>
         </div>
       </div>
+      )}
 
-      {/* Badges Obtenidos */}
+      {/* Badges Obtenidos - Solo para voluntarios */}
       {earnedBadges.length > 0 ? (
         <div>
           <h2 className="mb-4 text-lg font-semibold text-ink">🏆 Badges Verificados en Blockchain</h2>
@@ -124,8 +153,8 @@ const BadgesPage = () => {
         </div>
       ) : null}
 
-      {/* Sin Badges */}
-      {badges.length === 0 ? (
+      {/* Sin Badges - Solo para voluntarios */}
+      {isVolunteer && badges.length === 0 ? (
         <div className="flex min-h-[300px] items-center justify-center rounded-xl border border-slate-200 bg-white p-8">
           <div className="text-center">
             <SparklesIcon className="mx-auto h-16 w-16 text-slate-300" />
@@ -155,6 +184,19 @@ const BadgesPage = () => {
           tu logro de forma transparente y descentralizada.
         </p>
       </div>
+
+      {/* Create Badge Modal */}
+      {isOrganization && (
+        <CreateBadgeModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onBadgeCreated={(badge) => {
+            setIsCreateModalOpen(false);
+            // Optionally reload or show success message
+          }}
+          api={api}
+        />
+      )}
     </div>
   );
 };

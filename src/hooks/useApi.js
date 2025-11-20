@@ -137,6 +137,29 @@ const useApi = () => {
   );
 
   // ============================================
+  // BADGES - Gestión de Badges NFT
+  // ============================================
+  const createBadge = useCallback(
+    async (payload, iconFile) => {
+      const formData = new FormData();
+      formData.append('code', payload.code);
+      formData.append('name', payload.name);
+      if (payload.description) formData.append('description', payload.description);
+      if (payload.category) formData.append('category', payload.category);
+      if (payload.level) formData.append('level', payload.level);
+      if (payload.criteria) formData.append('criteria', JSON.stringify(payload.criteria));
+      if (iconFile) formData.append('icon', iconFile);
+      
+      return authFetch('/gamification/badges', {
+        method: 'POST',
+        body: formData,
+        isFormData: true,
+      });
+    },
+    [authFetch],
+  );
+
+  // ============================================
   // TASKS DETAIL - Detalle de Tareas
   // ============================================
   const getTaskDetail = useCallback(
@@ -146,6 +169,15 @@ const useApi = () => {
 
   const deleteTask = useCallback(
     async (taskId) => authFetch(`/tasks/${taskId}`, { method: 'DELETE' }),
+    [authFetch],
+  );
+
+  const assignTaskToVolunteer = useCallback(
+    async (taskId, volunteerId) =>
+      authFetch(`/tasks/${taskId}/assign`, {
+        method: 'POST',
+        body: { volunteerId },
+      }),
     [authFetch],
   );
 
@@ -204,6 +236,7 @@ const useApi = () => {
     updateTask,
     updateTaskStatus,
     deleteTask,
+    assignTaskToVolunteer,
     
     // Matching
     runMatching,
@@ -224,6 +257,7 @@ const useApi = () => {
     // Gamification
     getVolunteerGamification,
     getLeaderboard,
+    createBadge,
     
     // Organizations
     getOrganizationMemberships,
