@@ -5,10 +5,11 @@ import { useForm } from 'react-hook-form';
 import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import FileUpload from './FileUpload.jsx';
 
-const CompleteAssignmentModal = ({ isOpen, onClose, assignment, onCompleted, api }) => {
+const CompleteAssignmentModal = ({ isOpen, onClose, assignment, onCompleted, api, onBadgeEarned }) => {
   const [evidenceFile, setEvidenceFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [completedData, setCompletedData] = useState(null);
   
   const {
     register,
@@ -72,11 +73,22 @@ const CompleteAssignmentModal = ({ isOpen, onClose, assignment, onCompleted, api
           const errorData = await response.json();
           throw new Error(errorData.message || 'Error al completar');
         }
+
+        const result = await response.json();
+        setCompletedData(result.data);
       }
+
+      // Mostrar mensaje de éxito
+      alert('✅ ¡Tarea marcada como completada!\n\nLa organización recibirá una notificación para verificar tu trabajo y asignar la calificación correspondiente.');
       
       reset();
       setEvidenceFile(null);
       onCompleted();
+      
+      // TODO: Si hay badges ganados, mostrarlos
+      // if (completedData?.badgesEarned?.length > 0) {
+      //   onBadgeEarned?.(completedData.badgesEarned[0]);
+      // }
     } catch (err) {
       setError(err.message || 'Error al completar la asignación');
     } finally {

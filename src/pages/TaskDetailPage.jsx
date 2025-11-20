@@ -250,20 +250,15 @@ const TaskDetailPage = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-sm shadow-lg">
-                      {assignment.volunteer?.user?.fullName?.charAt(0)?.toUpperCase() || 'V'}
+                      {assignment.volunteer?.fullName?.charAt(0)?.toUpperCase() || 'V'}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-ink">
-                        {assignment.volunteer?.user?.fullName || 'Voluntario'}
+                        {assignment.volunteer?.fullName || 'Voluntario'}
                       </p>
                       <p className="text-xs text-muted">
-                        {assignment.volunteer?.user?.email}
+                        {assignment.volunteer?.email}
                       </p>
-                      {assignment.volunteer?.level && (
-                        <p className="text-xs font-semibold text-primary mt-0.5">
-                          Nivel: {assignment.volunteer.level}
-                        </p>
-                      )}
                     </div>
                   </div>
                   <div className="text-right">

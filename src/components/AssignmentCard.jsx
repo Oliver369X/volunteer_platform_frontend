@@ -153,8 +153,19 @@ const AssignmentCard = ({ assignment, onAccept, onReject, onComplete }) => {
         )}
 
         {assignment.task?.organization?.name && (
-          <div className="text-xs font-semibold text-primary">
-            🏢 {assignment.task.organization.name}
+          <div className="rounded-lg bg-primary/10 px-2 py-1 mt-2">
+            <p className="text-xs font-semibold text-primary">
+              🏢 {assignment.task.organization.name}
+            </p>
+          </div>
+        )}
+
+        {/* Quién te asignó */}
+        {assignment.assignedByUser && (
+          <div className="rounded-lg bg-blue-50 px-2 py-1 mt-2 border border-blue-200">
+            <p className="text-xs text-blue-700">
+              👤 Asignado por: <span className="font-semibold">{assignment.assignedByUser.fullName || assignment.assignedByUser.email}</span>
+            </p>
           </div>
         )}
       </div>
@@ -228,10 +239,41 @@ const AssignmentCard = ({ assignment, onAccept, onReject, onComplete }) => {
       )}
 
       {assignment.status === 'VERIFIED' && (
-        <div className="rounded-xl bg-green-100 p-3 text-center">
-          <p className="text-sm font-bold text-green-700">
-            ✅ Misión verificada y puntos otorgados
+        <div className="rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 p-4 text-center border-2 border-green-400 animate-pulse">
+          <p className="text-lg font-bold text-green-700 mb-1">
+            ✅ ¡Misión Verificada!
           </p>
+          <p className="text-xs text-green-600">
+            Puntos otorgados y agregados a tu perfil
+          </p>
+        </div>
+      )}
+
+      {/* Timeline de progreso */}
+      {(assignment.status === 'ACCEPTED' || assignment.status === 'IN_PROGRESS' || assignment.status === 'COMPLETED') && (
+        <div className="rounded-xl bg-slate-50 p-3 space-y-1.5 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-green-500" />
+            <span className="text-muted">Asignado: {formatDateTime(assignment.assignedAt)}</span>
+          </div>
+          {assignment.respondedAt && (
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-blue-500" />
+              <span className="text-muted">Aceptado: {formatDateTime(assignment.respondedAt)}</span>
+            </div>
+          )}
+          {assignment.completedAt && (
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="text-muted">Completado: {formatDateTime(assignment.completedAt)}</span>
+            </div>
+          )}
+          {!assignment.completedAt && assignment.task?.startAt && (
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
+              <span className="text-yellow-700 font-semibold">Pendiente de completar</span>
+            </div>
+          )}
         </div>
       )}
 
