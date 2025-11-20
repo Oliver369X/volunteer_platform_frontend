@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import ErrorAlert from '../components/ErrorAlert.jsx';
 import AssignmentCard from '../components/AssignmentCard.jsx';
 import CompleteAssignmentModal from '../components/CompleteAssignmentModal.jsx';
+import BadgeEarnedModal from '../components/BadgeEarnedModal.jsx';
 import { CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 const STATUS_FILTERS = [
@@ -27,7 +28,9 @@ const AssignmentsPage = () => {
   const [error, setError] = useState(null);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
-  const { register, watch, setValue } = useForm({
+  const [earnedBadge, setEarnedBadge] = useState(null);
+  const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
+  const { register, watch } = useForm({
     defaultValues: { status: '' },
   });
   const statusFilter = watch('status');
@@ -259,6 +262,22 @@ const AssignmentsPage = () => {
         assignment={selectedAssignment}
         onCompleted={handleCompleted}
         api={api}
+        onBadgeEarned={(badge) => {
+          setEarnedBadge(badge);
+          setIsBadgeModalOpen(true);
+        }}
+      />
+
+      {/* Modal de Badge Ganado */}
+      <BadgeEarnedModal
+        isOpen={isBadgeModalOpen}
+        onClose={() => {
+          setIsBadgeModalOpen(false);
+          setEarnedBadge(null);
+          // Redirigir a badges
+          window.location.href = '/dashboard/badges';
+        }}
+        badge={earnedBadge}
       />
     </div>
   );
