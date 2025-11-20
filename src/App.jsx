@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 import Login from './pages/Login.jsx';
 import RegisterVolunteer from './pages/RegisterVolunteer.jsx';
 import RegisterOrganization from './pages/RegisterOrganization.jsx';
@@ -18,7 +19,7 @@ import CalendarPage from './pages/CalendarPage.jsx';
 
 const App = () => (
   <Routes>
-    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    <Route path="/" element={<LandingPage />} />
     <Route path="/auth">
       <Route path="login" element={<Login />} />
       <Route path="register">
@@ -41,7 +42,7 @@ const App = () => (
         <Route path="/dashboard/profile" element={<ProfilePage />} />
       </Route>
     </Route>
-    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );
 
