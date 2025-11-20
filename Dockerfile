@@ -17,7 +17,7 @@ RUN npm ci
 COPY . .
 
 # Argumento de build para la URL del API (se puede sobreescribir)
-ARG VITE_API_BASE_URL=https://api.example.com/api
+ARG VITE_API_BASE_URL=https://dolphin-app-vz5up.ondigitalocean.app/api
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Build de producción
