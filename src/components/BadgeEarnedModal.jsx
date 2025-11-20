@@ -195,3 +195,5 @@ const BadgeEarnedModal = ({ isOpen, onClose, badge }) => {
 
 export default BadgeEarnedModal;
 
+
+
