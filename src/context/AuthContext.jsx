@@ -68,6 +68,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ refreshToken: tokens.refreshToken }),
       });
 
@@ -111,6 +112,7 @@ export const AuthProvider = ({ children }) => {
       const requestInit = {
         method,
         headers: finalHeaders,
+        credentials: 'include',
         signal,
         body:
           body instanceof FormData
@@ -166,8 +168,14 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       return;
     }
-    fetchCurrentUser();
-  }, [fetchCurrentUser, tokens?.accessToken]);
+    // Solo cargar usuario una vez cuando hay token y no hay usuario
+    if (!user) {
+      fetchCurrentUser();
+    } else {
+      setStatus('authenticated');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokens?.accessToken]);
 
   const login = useCallback(
     async ({ email, password }) => {
@@ -177,6 +185,7 @@ export const AuthProvider = ({ children }) => {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ email, password }),
         });
         const payload = await parseResponse(response);
@@ -200,22 +209,28 @@ export const AuthProvider = ({ children }) => {
   const registerVolunteer = useCallback(
     async (formData) => {
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/auth/register/volunteer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const payload = await parseResponse(response);
-      if (!response.ok) {
-        throw new Error(payload?.message ?? 'No se pudo completar el registro');
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/register/volunteer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(formData),
+        });
+        const payload = await parseResponse(response);
+        if (!response.ok) {
+          throw new Error(payload?.message ?? 'No se pudo completar el registro');
+        }
+        const { user: userData, tokens: receivedTokens } = payload.data ?? payload;
+        saveTokens(receivedTokens);
+        setUser(userData);
+        setStatus('authenticated');
+        return userData;
+      } catch (error) {
+        setError(error.message);
+        throw error;
       }
-      const { user: userData, tokens: receivedTokens } = payload.data ?? payload;
-      saveTokens(receivedTokens);
-      setUser(userData);
-      setStatus('authenticated');
-      return userData;
     },
-    [saveTokens],
+    [saveTokens, setError],
   );
 
   const registerOrganization = useCallback(
@@ -224,6 +239,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch(`${API_BASE_URL}/auth/register/organization`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
       const payload = await parseResponse(response);
@@ -248,6 +264,7 @@ export const AuthProvider = ({ children }) => {
             'Content-Type': 'application/json',
             Authorization: tokens?.accessToken ? `Bearer ${tokens.accessToken}` : undefined,
           },
+          credentials: 'include',
           body: JSON.stringify({ refreshTokenId: tokens.refreshTokenId }),
         });
       }

@@ -101,22 +101,145 @@ const useApi = () => {
     [authFetch],
   );
 
+  // ============================================
+  // ASSIGNMENTS - Gestión de Asignaciones
+  // ============================================
+  const getMyAssignments = useCallback(
+    async (params) => {
+      const query = buildQueryString(params);
+      return authFetch(`/gamification/assignments${query}`);
+    },
+    [authFetch],
+  );
+
+  const acceptAssignment = useCallback(
+    async (assignmentId) =>
+      authFetch(`/gamification/assignments/${assignmentId}/accept`, { method: 'POST' }),
+    [authFetch],
+  );
+
+  const rejectAssignment = useCallback(
+    async (assignmentId, reason) =>
+      authFetch(`/gamification/assignments/${assignmentId}/reject`, {
+        method: 'POST',
+        body: { reason },
+      }),
+    [authFetch],
+  );
+
+  const completeAssignment = useCallback(
+    async (assignmentId, payload) =>
+      authFetch(`/gamification/assignments/${assignmentId}/complete`, {
+        method: 'POST',
+        body: payload,
+      }),
+    [authFetch],
+  );
+
+  // ============================================
+  // TASKS DETAIL - Detalle de Tareas
+  // ============================================
+  const getTaskDetail = useCallback(
+    async (taskId) => authFetch(`/tasks/${taskId}`),
+    [authFetch],
+  );
+
+  const deleteTask = useCallback(
+    async (taskId) => authFetch(`/tasks/${taskId}`, { method: 'DELETE' }),
+    [authFetch],
+  );
+
+  // ============================================
+  // USER PROFILE - Perfil de Usuario
+  // ============================================
+  const updateUserProfile = useCallback(
+    async (payload) => authFetch('/users/me', { method: 'PATCH', body: payload }),
+    [authFetch],
+  );
+
+  const changePassword = useCallback(
+    async (payload) =>
+      authFetch('/users/me/password', { method: 'PATCH', body: payload }),
+    [authFetch],
+  );
+
+  const uploadAvatar = useCallback(
+    async (file) => {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      return authFetch('/users/me/avatar', {
+        method: 'POST',
+        body: formData,
+        isFormData: true,
+      });
+    },
+    [authFetch],
+  );
+
+  // ============================================
+  // NOTIFICATIONS - Notificaciones (mock inicial)
+  // ============================================
+  const getNotifications = useCallback(
+    async () => {
+      // TODO: Implementar endpoint real en backend
+      // Por ahora retornamos array vacío
+      return [];
+    },
+    [authFetch],
+  );
+
+  const markNotificationAsRead = useCallback(
+    async (notificationId) => {
+      // TODO: Implementar endpoint real
+      return { success: true };
+    },
+    [authFetch],
+  );
+
   return {
+    // Tasks
     getTasks,
+    getTaskDetail,
     createTask,
     updateTask,
     updateTaskStatus,
+    deleteTask,
+    
+    // Matching
     runMatching,
+    
+    // Assignments
+    getMyAssignments,
+    acceptAssignment,
+    rejectAssignment,
+    completeAssignment,
+    
+    // Profile
     getVolunteerProfile,
     updateVolunteerProfile,
+    updateUserProfile,
+    changePassword,
+    uploadAvatar,
+    
+    // Gamification
     getVolunteerGamification,
     getLeaderboard,
+    
+    // Organizations
     getOrganizationMemberships,
     getOrganizationDetails,
     addOrganizationMember,
+    
+    // Reports
     getOrganizationReport,
     getVolunteerReport,
+    
+    // Volunteers
     listVolunteers,
+    
+    // Notifications
+    getNotifications,
+    markNotificationAsRead,
   };
 };
 

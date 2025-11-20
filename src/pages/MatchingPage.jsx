@@ -39,7 +39,7 @@ const MatchingPage = () => {
       }
     };
     fetchTasks();
-  }, [api]);
+  }, []);
 
   const onRunMatching = async (values) => {
     if (!selectedTask) return;

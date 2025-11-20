@@ -10,6 +10,7 @@ import ErrorAlert from '../components/ErrorAlert.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { formatNumber, formatPoints, formatPercentage } from '../lib/formatters.js';
 import TaskTable from '../components/TaskTable.jsx';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const ReportsPage = () => {
   const { user } = useAuth();
@@ -63,6 +64,36 @@ const ReportsPage = () => {
     loadData(filters);
   };
 
+  const exportReport = (format) => {
+    const data = user?.role === 'VOLUNTEER' ? volunteerReport : organizationReport;
+    const filename = `reporte_${user?.role.toLowerCase()}_${Date.now()}`;
+
+    if (format === 'json') {
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${filename}.json`;
+      link.click();
+    } else if (format === 'csv' && tasks.length > 0) {
+      const headers = ['Título', 'Estado', 'Urgencia', 'Categoría', 'Voluntarios Necesarios', 'Fecha Inicio'];
+      const rows = tasks.map((task) => [
+        task.title || '',
+        task.status || '',
+        task.urgency || '',
+        task.category || '',
+        task.volunteersNeeded || 0,
+        task.startAt ? new Date(task.startAt).toLocaleDateString() : '',
+      ]);
+      const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${filename}.csv`;
+      link.click();
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner label="Generando reportes..." />;
   }
@@ -71,11 +102,35 @@ const ReportsPage = () => {
     return <ErrorAlert message={error} />;
   }
 
+  const hasData = user?.role === 'VOLUNTEER' ? volunteerReport : organizationReport;
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Inteligencia y métricas"
         description="Analiza desempeño, impacto y asignación de recursos para tomar decisiones basadas en datos."
+        actions={
+          hasData ? (
+            <div className="flex gap-2">
+              <button
+                onClick={() => exportReport('json')}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-ink shadow-sm hover:bg-slate-50"
+              >
+                <ArrowDownTrayIcon className="h-4 w-4" />
+                Exportar JSON
+              </button>
+              {tasks.length > 0 ? (
+                <button
+                  onClick={() => exportReport('csv')}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-dark"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  Exportar CSV
+                </button>
+              ) : null}
+            </div>
+          ) : null
+        }
       />
 
       <form

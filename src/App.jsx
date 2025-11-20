@@ -6,10 +6,15 @@ import RegisterVolunteer from './pages/RegisterVolunteer.jsx';
 import RegisterOrganization from './pages/RegisterOrganization.jsx';
 import DashboardHome from './pages/DashboardHome.jsx';
 import TasksPage from './pages/TasksPage.jsx';
+import TaskDetailPage from './pages/TaskDetailPage.jsx';
+import AssignmentsPage from './pages/AssignmentsPage.jsx';
 import MatchingPage from './pages/MatchingPage.jsx';
 import GamificationPage from './pages/GamificationPage.jsx';
+import BadgesPage from './pages/BadgesPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
 import VolunteersPage from './pages/VolunteersPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
+import CalendarPage from './pages/CalendarPage.jsx';
 
 const App = () => (
   <Routes>
@@ -25,10 +30,15 @@ const App = () => (
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<DashboardHome />} />
         <Route path="/dashboard/tasks" element={<TasksPage />} />
+        <Route path="/dashboard/tasks/:taskId" element={<TaskDetailPage />} />
+        <Route path="/dashboard/assignments" element={<AssignmentsPage />} />
+        <Route path="/dashboard/calendar" element={<CalendarPage />} />
         <Route path="/dashboard/matching" element={<MatchingPage />} />
         <Route path="/dashboard/gamification" element={<GamificationPage />} />
+        <Route path="/dashboard/badges" element={<BadgesPage />} />
         <Route path="/dashboard/reports" element={<ReportsPage />} />
         <Route path="/dashboard/volunteers" element={<VolunteersPage />} />
+        <Route path="/dashboard/profile" element={<ProfilePage />} />
       </Route>
     </Route>
     <Route path="*" element={<Navigate to="/dashboard" replace />} />

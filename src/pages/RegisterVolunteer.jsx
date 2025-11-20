@@ -16,7 +16,7 @@ const schema = z
     password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
     phoneNumber: z.string().optional(),
     baseLocation: z.string().optional(),
-    bio: z.string().max(300).optional(),
+    bio: z.string().min(10, 'La biografía debe tener al menos 10 caracteres').max(300, 'Máximo 300 caracteres'),
     skills: z.string().optional(),
   })
   .superRefine((values, ctx) => {
@@ -70,19 +70,52 @@ const RegisterVolunteer = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50 px-4 py-10">
-      <div className="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
-        <div className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">Únete a La Causa</p>
-          <h1 className="text-2xl font-semibold text-ink">Registro de voluntario/a</h1>
-          <p className="text-sm text-muted">
-            Completa tus datos para acceder a misiones, recompensas y el ecosistema de ayuda inteligente.
-          </p>
-        </div>
-        {serverError ? <ErrorAlert message={serverError} /> : null}
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50 gradient-mesh px-4 py-8 sm:py-12 animate-fade-in">
+      {/* Efectos decorativos de fondo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+
+      <div className="relative w-full max-w-4xl">
+        <div className="rounded-3xl border-2 border-slate-200 bg-white/95 backdrop-blur-xl p-6 sm:p-10 shadow-2xl animate-scale-in">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-xl">
+              <span className="text-3xl">🎯</span>
+            </div>
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">
+              Únete a La Causa
+            </p>
+            <h1 className="text-3xl sm:text-4xl font-bold text-ink mb-3">
+              Registro de voluntario/a 💚
+            </h1>
+            <p className="text-sm sm:text-base text-muted max-w-2xl mx-auto">
+              Completa tus datos para acceder a misiones, recompensas NFT y el ecosistema de ayuda inteligente con IA.
+            </p>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="mb-8 flex items-center justify-center gap-2">
+            {[1, 2, 3].map((step) => (
+              <div
+                key={step}
+                className={`h-2 rounded-full transition-all ${
+                  step === 1 ? 'w-12 bg-emerald-500' : 'w-2 bg-slate-200'
+                }`}
+              />
+            ))}
+          </div>
+
+          {serverError && (
+            <div className="mb-6 animate-slide-down">
+              <ErrorAlert message={serverError} />
+            </div>
+          )}
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 grid gap-4 md:grid-cols-2">
           <InputField
             label="Nombre completo"
+            placeholder="Ingresa tu nombre completo"
             required
             {...register('fullName')}
             error={errors.fullName?.message}
@@ -90,6 +123,7 @@ const RegisterVolunteer = () => {
           <InputField
             label="Correo electrónico"
             type="email"
+            placeholder="tu@email.com"
             required
             {...register('email')}
             error={errors.email?.message}
@@ -97,6 +131,7 @@ const RegisterVolunteer = () => {
           <InputField
             label="Contraseña"
             type="password"
+            placeholder="Mínimo 8 caracteres"
             required
             {...register('password')}
             error={errors.password?.message}
@@ -122,7 +157,9 @@ const RegisterVolunteer = () => {
             className="md:col-span-2"
           />
           <label className="md:col-span-2 flex flex-col gap-1">
-            <span className="text-sm font-medium text-ink">Biografía</span>
+            <span className="text-sm font-medium text-ink">
+              Biografía<span className="ml-1 text-primary">*</span>
+            </span>
             <textarea
               rows={4}
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-ink shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -132,7 +169,7 @@ const RegisterVolunteer = () => {
             {errors.bio?.message ? (
               <span className="text-xs text-red-600">{errors.bio.message}</span>
             ) : (
-              <span className="text-xs text-muted">Máximo 300 caracteres</span>
+              <span className="text-xs text-muted">Mínimo 10 caracteres, máximo 300</span>
             )}
           </label>
           <button
