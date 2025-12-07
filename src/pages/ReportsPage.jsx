@@ -64,33 +64,70 @@ const ReportsPage = () => {
     loadData(filters);
   };
 
-  const exportReport = (format) => {
-    const data = user?.role === 'VOLUNTEER' ? volunteerReport : organizationReport;
-    const filename = `reporte_${user?.role.toLowerCase()}_${Date.now()}`;
+  const exportReport = async (format) => {
+    try {
+      if (format === 'pdf') {
+        // Exportar PDF desde el backend
+        const memberships = user?.role === 'ORGANIZATION' ? await api.getOrganizationMemberships() : null;
+        const primaryOrg = memberships?.[0]?.id;
+        
+        const queryParams = new URLSearchParams();
+        if (user?.role === 'ORGANIZATION' && primaryOrg) {
+          queryParams.append('organizationId', primaryOrg);
+        }
+        
+        const endpoint = user?.role === 'VOLUNTEER' 
+          ? `/reports/volunteer/export?${queryParams.toString()}`
+          : `/reports/organization/export?${queryParams.toString()}`;
+        
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}${endpoint}`, {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(localStorage.getItem('vip.auth.tokens') || '{}').accessToken || ''}`,
+          },
+        });
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_${user?.role.toLowerCase()}_${Date.now()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        return;
+      }
 
-    if (format === 'json') {
-      const json = JSON.stringify(data, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${filename}.json`;
-      link.click();
-    } else if (format === 'csv' && tasks.length > 0) {
-      const headers = ['Título', 'Estado', 'Urgencia', 'Categoría', 'Voluntarios Necesarios', 'Fecha Inicio'];
-      const rows = tasks.map((task) => [
-        task.title || '',
-        task.status || '',
-        task.urgency || '',
-        task.category || '',
-        task.volunteersNeeded || 0,
-        task.startAt ? new Date(task.startAt).toLocaleDateString() : '',
-      ]);
-      const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${filename}.csv`;
-      link.click();
+      const data = user?.role === 'VOLUNTEER' ? volunteerReport : organizationReport;
+      const filename = `reporte_${user?.role.toLowerCase()}_${Date.now()}`;
+
+      if (format === 'json') {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${filename}.json`;
+        link.click();
+      } else if (format === 'csv' && tasks.length > 0) {
+        const headers = ['Título', 'Estado', 'Urgencia', 'Categoría', 'Voluntarios Necesarios', 'Fecha Inicio'];
+        const rows = tasks.map((task) => [
+          task.title || '',
+          task.status || '',
+          task.urgency || '',
+          task.category || '',
+          task.volunteersNeeded || 0,
+          task.startAt ? new Date(task.startAt).toLocaleDateString() : '',
+        ]);
+        const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${filename}.csv`;
+        link.click();
+      }
+    } catch (err) {
+      console.error('Error al exportar reporte:', err);
+      alert('Error al exportar el reporte');
     }
   };
 
@@ -112,6 +149,13 @@ const ReportsPage = () => {
         actions={
           hasData ? (
             <div className="flex gap-2">
+              <button
+                onClick={() => exportReport('pdf')}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-700"
+              >
+                <ArrowDownTrayIcon className="h-4 w-4" />
+                Exportar PDF
+              </button>
               <button
                 onClick={() => exportReport('json')}
                 className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-ink shadow-sm hover:bg-slate-50"

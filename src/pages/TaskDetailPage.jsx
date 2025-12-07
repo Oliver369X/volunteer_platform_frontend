@@ -19,6 +19,7 @@ import {
   ArrowLeftIcon,
   BuildingOfficeIcon,
   SparklesIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 
 const STATUS_CONFIG = {
@@ -279,6 +280,31 @@ const TaskDetailPage = () => {
           </div>
         )}
       </div>
+
+      {/* Botón de Validación para Coordinadores */}
+      {(user?.role === 'ORGANIZATION' || user?.role === 'COORDINATOR') && 
+       assignments.some(a => a.status === 'COMPLETED' && !a.rating) && (
+        <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ShieldCheckIcon className="h-8 w-8 text-blue-600" />
+              <div>
+                <h3 className="font-semibold text-lg">Tareas Pendientes de Validación</h3>
+                <p className="text-sm text-gray-600">
+                  {assignments.filter(a => a.status === 'COMPLETED' && !a.rating).length} tarea(s) esperando tu revisión
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate(`/dashboard/tasks/${taskId}/validate`)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            >
+              <ShieldCheckIcon className="h-5 w-5" />
+              Validar Tareas
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Información Adicional */}
       <div className="grid gap-4 sm:grid-cols-2">

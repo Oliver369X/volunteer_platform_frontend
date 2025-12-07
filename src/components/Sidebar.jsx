@@ -10,6 +10,9 @@ import {
   UserGroupIcon,
   UsersIcon,
   CalendarDaysIcon,
+  MegaphoneIcon,
+  TrophyIcon,
+  MapPinIcon,
 } from '@heroicons/react/24/outline';
 import useAuth from '../hooks/useAuth.js';
 
@@ -18,21 +21,32 @@ const linksByRole = {
     { to: '/dashboard', label: 'Inicio', icon: HomeIcon, badge: null },
     { to: '/dashboard/assignments', label: 'Mis Asignaciones', icon: CommandLineIcon, badge: '📋' },
     { to: '/dashboard/tasks', label: 'Tareas Disponibles', icon: CommandLineIcon, badge: null },
+    { to: '/dashboard/tracking', label: 'Tracking GPS', icon: MapPinIcon, badge: '📍' },
     { to: '/dashboard/gamification', label: 'Gamificación', icon: PuzzlePieceIcon, badge: '🎮' },
-    { to: '/dashboard/badges', label: 'Mis Badges NFT', icon: SparklesIcon, badge: '🏆' },
+    { to: '/dashboard/ranking', label: 'Ranking y Niveles', icon: TrophyIcon, badge: '🏆' },
+    { to: '/dashboard/badges', label: 'Mis Badges NFT', icon: SparklesIcon, badge: '🎓' },
+    { to: '/dashboard/incidents', label: 'Reportar Problema', icon: CommandLineIcon, badge: '🚨' },
   ],
   ORGANIZATION: [
     { to: '/dashboard', label: 'Panel', icon: HomeIcon, badge: null },
+    { to: '/dashboard/events', label: 'Eventos', icon: CalendarDaysIcon, badge: '📅' },
     { to: '/dashboard/tasks', label: 'Tareas', icon: CommandLineIcon, badge: null },
-    { to: '/dashboard/calendar', label: 'Calendario', icon: CalendarDaysIcon, badge: '📅' },
     { to: '/dashboard/matching', label: 'Asignación IA', icon: UsersIcon, badge: '🤖' },
+    { to: '/dashboard/predictive-staffing', label: 'Predicción IA', icon: SparklesIcon, badge: '🔮' },
+    { to: '/dashboard/team', label: 'Equipo', icon: UserGroupIcon, badge: '👥' },
+    { to: '/dashboard/certificates', label: 'Certificados NFT', icon: SparklesIcon, badge: '🎓' },
+    { to: '/dashboard/broadcast', label: 'Comunicados', icon: CommandLineIcon, badge: '📢' },
     { to: '/dashboard/reports', label: 'Reportes', icon: ChartBarIcon, badge: '📊' },
     { to: '/dashboard/volunteers', label: 'Voluntarios', icon: UserGroupIcon, badge: null },
+    { to: '/dashboard/subscription', label: 'Suscripción', icon: ChartBarIcon, badge: '💳' },
+    { to: '/dashboard/incidents', label: 'Incidencias', icon: CommandLineIcon, badge: '🚨' },
   ],
   ADMIN: [
     { to: '/dashboard', label: 'Overview', icon: HomeIcon, badge: null },
+    { to: '/dashboard/audit', label: 'Auditoría', icon: ChartBarIcon, badge: '🔒' },
     { to: '/dashboard/reports', label: 'Reportes', icon: ChartBarIcon, badge: '📊' },
     { to: '/dashboard/volunteers', label: 'Voluntarios', icon: UserGroupIcon, badge: null },
+    { to: '/dashboard/incidents', label: 'Incidencias', icon: CommandLineIcon, badge: '🚨' },
   ],
 };
 

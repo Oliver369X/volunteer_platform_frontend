@@ -41,7 +41,7 @@ const CompleteAssignmentModal = ({ isOpen, onClose, assignment, onCompleted, api
 
         // Llamar al endpoint con FormData
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'}/gamification/assignments/${assignment.id}/mark-completed`,
+          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/gamification/assignments/${assignment.id}/mark-completed`,
           {
             method: 'POST',
             headers: {
@@ -58,7 +58,7 @@ const CompleteAssignmentModal = ({ isOpen, onClose, assignment, onCompleted, api
       } else {
         // Sin evidencia, solo marcar como completada
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'}/gamification/assignments/${assignment.id}/mark-completed`,
+          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/gamification/assignments/${assignment.id}/mark-completed`,
           {
             method: 'POST',
             headers: {

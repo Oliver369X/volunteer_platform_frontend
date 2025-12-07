@@ -240,6 +240,68 @@ const useApi = () => {
     // Notifications
     getNotifications,
     markNotificationAsRead,
+
+    // === NUEVOS ENDPOINTS ===
+    // Events  
+    listEvents: useCallback(
+      async (organizationId) => {
+        const query = buildQueryString({ organizationId });
+        return authFetch(`/events${query}`);
+      },
+      [authFetch]
+    ),
+    createEvent: useCallback(
+      async (payload) => authFetch('/events', { method: 'POST', body: payload }),
+      [authFetch]
+    ),
+    getEventById: useCallback(
+      async (eventId) => authFetch(`/events/${eventId}`),
+      [authFetch]
+    ),
+
+    // Tracking
+    recordLocation: useCallback(
+      async (payload) => authFetch('/tracking', { method: 'POST', body: payload }),
+      [authFetch]
+    ),
+    getEventVolunteersLocations: useCallback(
+      async (eventId) => authFetch(`/tracking/event/${eventId}`),
+      [authFetch]
+    ),
+
+    // Incidents  
+    listIncidents: useCallback(
+      async (filters = {}) => {
+        const query = buildQueryString(filters);
+        return authFetch(`/incidents${query}`);
+      },
+      [authFetch]
+    ),
+    createIncident: useCallback(
+      async (payload) => authFetch('/incidents', { method: 'POST', body: payload }),
+      [authFetch]
+    ),
+
+    // Subscription
+    getCurrentSubscription: useCallback(
+      async () => authFetch('/payments/subscription'),
+      [authFetch]
+    ),
+
+    // Broadcasts
+    sendBroadcast: useCallback(
+      async (payload) => authFetch('/broadcasts', { method: 'POST', body: payload }),
+      [authFetch]
+    ),
+
+    // Audit
+    getAuditLogs: useCallback(
+      async (filters = {}) => {
+        const query = buildQueryString(filters);
+        return authFetch(`/audit${query}`);
+      },
+      [authFetch]
+    ),
   };
 };
 

@@ -10,6 +10,7 @@ import {
   FireIcon,
 } from '@heroicons/react/24/outline';
 import { formatDateTime } from '../lib/formatters.js';
+import LocationTracker from './LocationTracker.jsx';
 
 const STATUS_CONFIG = {
   PENDING: {
@@ -249,9 +250,20 @@ const AssignmentCard = ({ assignment, onAccept, onReject, onComplete }) => {
         </div>
       )}
 
+      {/* Location Tracker - Solo cuando está en progreso */}
+      {assignment.status === 'IN_PROGRESS' && assignment.id && assignment.task?.id && (
+        <div className="mt-3">
+          <LocationTracker
+            taskId={assignment.task.id}
+            assignmentId={assignment.id}
+            isActive={assignment.status === 'IN_PROGRESS'}
+          />
+        </div>
+      )}
+
       {/* Timeline de progreso */}
       {(assignment.status === 'ACCEPTED' || assignment.status === 'IN_PROGRESS' || assignment.status === 'COMPLETED') && (
-        <div className="rounded-xl bg-slate-50 p-3 space-y-1.5 text-xs">
+        <div className="rounded-xl bg-slate-50 p-3 space-y-1.5 text-xs mt-3">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-green-500" />
             <span className="text-muted">Asignado: {formatDateTime(assignment.assignedAt)}</span>

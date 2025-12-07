@@ -122,6 +122,16 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Forgot password link */}
+            <div className="text-right">
+              <Link
+                to="/auth/password/reset"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={isSubmitting}

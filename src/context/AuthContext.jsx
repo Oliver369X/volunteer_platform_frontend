@@ -10,7 +10,7 @@ import {
   useState,
 } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001/api';
 const STORAGE_KEY = 'vip.auth.tokens';
 
 const AuthContext = createContext(undefined);
@@ -137,6 +137,14 @@ export const AuthProvider = ({ children }) => {
         const error = new Error(payload?.message ?? 'Error inesperado');
         error.details = payload?.details;
         error.status = response.status;
+        // En desarrollo, mostrar más detalles del error
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error de API:', {
+            status: response.status,
+            payload,
+            url: `${API_BASE_URL}${path}`,
+          });
+        }
         throw error;
       }
 
