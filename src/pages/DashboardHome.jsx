@@ -8,6 +8,23 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import ErrorAlert from '../components/ErrorAlert.jsx';
 import { formatNumber, formatPoints } from '../lib/formatters.js';
 import { SparklesIcon, UserGroupIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 const DashboardHome = () => {
   const { user } = useAuth();
@@ -26,15 +43,31 @@ const DashboardHome = () => {
             api.getVolunteerProfile(),
             api.getVolunteerGamification(),
           ]);
-          setOverview({ profile, gamification });
+          // Obtener asignaciones
+          let assignments = [];
+          try {
+            assignments = await api.getMyAssignments({ limit: 20 });
+          } catch (e) {
+            console.log('No se pudieron cargar asignaciones:', e);
+          }
+          setOverview({ profile, gamification, assignments });
         } else if (user?.role === 'ORGANIZATION') {
-          const [orgs, tasks] = await Promise.all([
-            api.getOrganizationMemberships(),
-            api.getTasks({ limit: 10 }),
+          const orgs = await api.getOrganizationMemberships();
+          const [tasks] = await Promise.all([
+            api.getTasks({ limit: 50 }),
           ]);
-          setOverview({ orgs, tasks });
+          // Obtener eventos si hay organización
+          let events = [];
+          try {
+            if (orgs?.[0]?.id) {
+              events = await api.listEvents(orgs[0].id);
+            }
+          } catch (e) {
+            console.log('No se pudieron cargar eventos:', e);
+          }
+          setOverview({ orgs, tasks, events });
         } else {
-          const volunteers = await api.listVolunteers({ limit: 5 });
+          const volunteers = await api.listVolunteers({ limit: 10 });
           setOverview({ volunteers });
         }
       } catch (fetchError) {
@@ -45,12 +78,87 @@ const DashboardHome = () => {
     };
 
     fetchData();
-  }, [ ]);
+  }, [user?.role]);
+
+  // Preparar datos para gráficas de voluntario
+  const prepareVolunteerCharts = () => {
+    if (!overview?.assignments) return { statusData: [], progressData: [] };
+
+    const assignments = Array.isArray(overview.assignments) 
+      ? overview.assignments 
+      : overview.assignments?.assignments || [];
+
+    // Datos por estado
+    const statusMap = {};
+    assignments.forEach((assignment) => {
+      const status = assignment.status || 'PENDING';
+      statusMap[status] = (statusMap[status] || 0) + 1;
+    });
+    const statusData = Object.entries(statusMap).map(([name, value]) => ({
+      name: name.replace('_', ' '),
+      value,
+    }));
+
+    // Progreso de puntos (últimos 5 assignments)
+    const progressData = assignments
+      .slice(0, 5)
+      .map((assignment, index) => ({
+        nombre: `Tarea ${index + 1}`,
+        puntos: assignment.pointsEarned || 0,
+      }));
+
+    return { statusData, progressData };
+  };
+
+  // Preparar datos para gráficas de organización
+  const prepareOrganizationCharts = () => {
+    if (!overview?.tasks) return { statusData: [], urgencyData: [], categoryData: [] };
+
+    const tasks = Array.isArray(overview.tasks) ? overview.tasks : overview.tasks?.tasks || [];
+
+    // Tareas por estado
+    const statusMap = {};
+    tasks.forEach((task) => {
+      const status = task.status || 'PENDING';
+      statusMap[status] = (statusMap[status] || 0) + 1;
+    });
+    const statusData = Object.entries(statusMap).map(([name, value]) => ({
+      name: name.replace('_', ' '),
+      value,
+    }));
+
+    // Tareas por urgencia
+    const urgencyMap = {};
+    tasks.forEach((task) => {
+      const urgency = task.urgency || 'MEDIA';
+      urgencyMap[urgency] = (urgencyMap[urgency] || 0) + 1;
+    });
+    const urgencyData = Object.entries(urgencyMap).map(([name, value]) => ({
+      name,
+      value,
+    }));
+
+    // Tareas por categoría
+    const categoryMap = {};
+    tasks.forEach((task) => {
+      const category = task.category || 'Sin categoría';
+      categoryMap[category] = (categoryMap[category] || 0) + 1;
+    });
+    const categoryData = Object.entries(categoryMap).map(([name, value]) => ({
+      name,
+      value,
+    }));
+
+    return { statusData, urgencyData, categoryData };
+  };
 
   const content = useMemo(() => {
     if (!overview) return null;
+    
     if (user?.role === 'VOLUNTEER') {
       const { gamification } = overview;
+      const { statusData, progressData } = prepareVolunteerCharts();
+
       return (
         <div className="grid gap-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -74,6 +182,50 @@ const DashboardHome = () => {
               icon={UserGroupIcon}
               tone="warning"
             />
+          </div>
+
+          {/* Gráficas para voluntarios */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {statusData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Estado de Mis Asignaciones</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {progressData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Puntos por Tarea</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={progressData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nombre" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="puntos" fill="#10b981" name="Puntos" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
           
           {/* Cards de acciones rápidas */}
@@ -134,10 +286,11 @@ const DashboardHome = () => {
       const { tasks } = overview;
       const completedTasks = tasks?.filter((task) => task.status === 'COMPLETED' || task.status === 'VERIFIED').length ?? 0;
       const totalVolunteersNeeded = tasks?.reduce((acc, task) => acc + (task.volunteersNeeded ?? 0), 0) ?? 0;
+      const { statusData, urgencyData, categoryData } = prepareOrganizationCharts();
       
       return (
         <div className="grid gap-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Misiones activas"
               value={formatNumber(tasks?.length ?? 0)}
@@ -158,6 +311,72 @@ const DashboardHome = () => {
               change="+3"
               changeLabel="este mes"
             />
+            <StatCard
+              title="Tasa de éxito"
+              value={tasks?.length > 0 ? `${Math.round((completedTasks / tasks.length) * 100)}%` : '0%'}
+              icon={SparklesIcon}
+              tone="success"
+            />
+          </div>
+
+          {/* Gráficas para organizaciones */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {statusData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Tareas por Estado</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={statusData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#3b82f6" name="Cantidad" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {urgencyData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Distribución por Urgencia</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={urgencyData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {urgencyData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {categoryData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                <h3 className="text-lg font-semibold text-ink mb-4">Distribución por Categoría</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={categoryData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#8b5cf6" name="Cantidad" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
 
           {/* Cards de acciones rápidas para organizaciones */}
@@ -284,7 +503,7 @@ const DashboardHome = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in p-6">
       {/* Hero section mejorado */}
       <div className="relative overflow-hidden rounded-3xl border-2 border-slate-200 bg-gradient-to-br from-primary/10 via-white to-emerald/10 p-6 sm:p-8 shadow-xl">
         {/* Efectos decorativos */}
@@ -332,6 +551,3 @@ const DashboardHome = () => {
 };
 
 export default DashboardHome;
-
-
-

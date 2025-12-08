@@ -46,6 +46,7 @@ const SubscriptionPage = () => {
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // Determinar qué planes mostrar según el usuario
   const availablePlans = useMemo(() => {
@@ -57,6 +58,41 @@ const SubscriptionPage = () => {
 
   useEffect(() => {
     fetchSubscription();
+    
+    // Verificar si viene de un checkout exitoso
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      const sessionId = localStorage.getItem('stripe_checkout_session');
+      
+      if (sessionId) {
+        setSuccessMessage('Verificando pago...');
+        
+        // Verificar y actualizar suscripción
+        verifyCheckout(sessionId)
+          .then(() => {
+            setSuccessMessage('¡Pago procesado exitosamente! Tu suscripción ha sido actualizada.');
+            setTimeout(() => setSuccessMessage(null), 5000);
+          })
+          .catch((err) => {
+            console.error('Error al verificar checkout:', err);
+            setSuccessMessage('Pago procesado. Refrescando suscripción...');
+            // Intentar refrescar de todas formas
+            setTimeout(() => {
+              fetchSubscription();
+              setTimeout(() => setSuccessMessage(null), 3000);
+            }, 1000);
+          });
+      } else {
+        setSuccessMessage('¡Pago procesado exitosamente! Refrescando suscripción...');
+        setTimeout(() => {
+          fetchSubscription();
+          setTimeout(() => setSuccessMessage(null), 3000);
+        }, 1000);
+      }
+      
+      // Limpiar la URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   const fetchSubscription = async () => {
@@ -77,12 +113,38 @@ const SubscriptionPage = () => {
         body: { plan: planName },
       });
       
+      // Guardar sessionId en localStorage para verificar después
+      const sessionId = data?.data?.sessionId || data?.sessionId;
+      if (sessionId) {
+        localStorage.setItem('stripe_checkout_session', sessionId);
+      }
+      
       // Redirigir a Stripe Checkout
       if (data?.data?.url || data?.url) {
         window.location.href = data.data?.url || data.url;
       }
     } catch (err) {
       setError(err.message || 'Error al crear sesión de pago');
+    }
+  };
+
+  const verifyCheckout = async (sessionId) => {
+    try {
+      const data = await authFetch('/payments/checkout/verify', {
+        method: 'POST',
+        body: { sessionId },
+      });
+      
+      // Limpiar sessionId del localStorage
+      localStorage.removeItem('stripe_checkout_session');
+      
+      // Refrescar suscripción
+      await fetchSubscription();
+      
+      return data;
+    } catch (err) {
+      console.error('Error al verificar checkout:', err);
+      throw err;
     }
   };
 
@@ -108,6 +170,12 @@ const SubscriptionPage = () => {
       />
 
       {error && <ErrorAlert message={error} onClose={() => setError(null)} />}
+      
+      {successMessage && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-green-800 font-medium">{successMessage}</p>
+        </div>
+      )}
 
       {/* Plan Actual */}
       {currentSubscription && (
@@ -123,14 +191,24 @@ const SubscriptionPage = () => {
               </p>
             </div>
             
-            {currentSubscription.subscription.plan !== 'FREE' && (
+            <div className="flex gap-2">
               <button
-                onClick={handleCancel}
-                className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+                onClick={fetchSubscription}
+                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-sm"
+                title="Refrescar suscripción"
               >
-                Cancelar Suscripción
+                🔄 Actualizar
               </button>
-            )}
+              
+              {currentSubscription.subscription.plan !== 'FREE' && (
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+                >
+                  Cancelar Suscripción
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -183,11 +261,16 @@ const SubscriptionPage = () => {
               ))}
             </ul>
 
-            {currentSubscription?.subscription.plan === plan.name ? (
-              <button disabled className="w-full px-6 py-3 bg-slate-200 text-slate-600 rounded-lg cursor-not-allowed font-semibold">
-                Plan Actual
-              </button>
-            ) : (
+            {(() => {
+              const currentPlan = currentSubscription?.subscription?.plan?.toUpperCase();
+              const planName = plan.name.toUpperCase();
+              const isCurrentPlan = currentPlan === planName;
+              
+              return isCurrentPlan ? (
+                <button disabled className="w-full px-6 py-3 bg-slate-200 text-slate-600 rounded-lg cursor-not-allowed font-semibold">
+                  Plan Actual
+                </button>
+              ) : (
               <button
                 onClick={() => plan.name !== 'FREE' && handleUpgrade(plan.name)}
                 disabled={plan.name === 'FREE'}
@@ -203,7 +286,8 @@ const SubscriptionPage = () => {
               >
                 {plan.name === 'FREE' ? 'Plan Gratuito' : 'Actualizar Plan'}
               </button>
-            )}
+              );
+            })()}
           </div>
         ))}
       </div>

@@ -74,7 +74,12 @@ const TeamManagementPage = () => {
       fetchMembers();
       alert('Invitación enviada exitosamente');
     } catch (err) {
-      setError(err.message || 'Error al enviar invitación');
+      // Extraer mensaje de error más descriptivo
+      const errorMessage = err.message || err.response?.data?.message || 'Error al enviar invitación';
+      console.error('Error al agregar miembro:', err);
+      setError(errorMessage);
+      // También mostrar alert para que sea más visible
+      alert(`Error: ${errorMessage}`);
     }
   };
 

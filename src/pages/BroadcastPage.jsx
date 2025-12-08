@@ -55,13 +55,26 @@ const BroadcastPage = () => {
       setError(null);
       setSuccess(null);
 
+      // Obtener organizationId del usuario
+      const orgId = user?.organizations?.[0]?.id;
+      if (!orgId) {
+        setError('No tienes una organización asociada');
+        return;
+      }
+
+      // Convertir channels array a channel string (tomar el primero o 'ALL' si hay múltiples)
+      const channel = Array.isArray(data.channels) && data.channels.length > 1 
+        ? 'ALL' 
+        : (Array.isArray(data.channels) ? data.channels[0] : data.channels || 'EMAIL');
+
       await authFetch('/broadcasts', {
         method: 'POST',
         body: {
+          organizationId: orgId,
           eventId: data.eventId || null,
-          title: data.title,
+          subject: data.title, // Backend espera 'subject', no 'title'
           message: data.message,
-          channels: data.channels,
+          channel: channel, // Backend espera 'channel' singular, no 'channels'
         },
       });
 
@@ -69,6 +82,7 @@ const BroadcastPage = () => {
       reset();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
+      console.error('Error al enviar comunicado:', err);
       setError(err.message || 'Error al enviar comunicado');
     }
   };

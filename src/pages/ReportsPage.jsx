@@ -11,6 +11,23 @@ import StatCard from '../components/StatCard.jsx';
 import { formatNumber, formatPoints, formatPercentage } from '../lib/formatters.js';
 import TaskTable from '../components/TaskTable.jsx';
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 const ReportsPage = () => {
   const { user } = useAuth();
@@ -67,7 +84,6 @@ const ReportsPage = () => {
   const exportReport = async (format) => {
     try {
       if (format === 'pdf') {
-        // Exportar PDF desde el backend
         const memberships = user?.role === 'ORGANIZATION' ? await api.getOrganizationMemberships() : null;
         const primaryOrg = memberships?.[0]?.id;
         
@@ -131,6 +147,60 @@ const ReportsPage = () => {
     }
   };
 
+  // Preparar datos para gráficas
+  const prepareStatusData = () => {
+    if (!organizationReport?.tasks?.byStatus) return [];
+    return Object.entries(organizationReport.tasks.byStatus).map(([status, count]) => ({
+      name: status.replace('_', ' '),
+      value: count || 0,
+    }));
+  };
+
+  const prepareCategoryData = () => {
+    const categoryMap = {};
+    tasks.forEach((task) => {
+      const category = task.category || 'Sin categoría';
+      categoryMap[category] = (categoryMap[category] || 0) + 1;
+    });
+    return Object.entries(categoryMap).map(([name, value]) => ({ name, value }));
+  };
+
+  const prepareUrgencyData = () => {
+    const urgencyMap = {};
+    tasks.forEach((task) => {
+      const urgency = task.urgency || 'MEDIA';
+      urgencyMap[urgency] = (urgencyMap[urgency] || 0) + 1;
+    });
+    return Object.entries(urgencyMap).map(([name, value]) => ({ name, value }));
+  };
+
+  const prepareTopVolunteersData = () => {
+    if (!organizationReport?.topVolunteers) return [];
+    return organizationReport.topVolunteers.slice(0, 10).map((v) => ({
+      name: v.fullName?.split(' ')[0] || 'Voluntario',
+      misiones: v.assignmentsCompleted || 0,
+    }));
+  };
+
+  const prepareTimelineData = () => {
+    // Agrupar tareas por mes
+    const monthMap = {};
+    tasks.forEach((task) => {
+      if (task.createdAt) {
+        const date = new Date(task.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthMap[monthKey] = (monthMap[monthKey] || 0) + 1;
+      }
+    });
+    return Object.entries(monthMap)
+      .sort()
+      .slice(-6)
+      .map(([month, count]) => ({
+        mes: month.split('-')[1] + '/' + month.split('-')[0].slice(2),
+        tareas: count,
+      }));
+  };
+
   if (loading) {
     return <LoadingSpinner label="Generando reportes..." />;
   }
@@ -140,9 +210,14 @@ const ReportsPage = () => {
   }
 
   const hasData = user?.role === 'VOLUNTEER' ? volunteerReport : organizationReport;
+  const statusData = prepareStatusData();
+  const categoryData = prepareCategoryData();
+  const urgencyData = prepareUrgencyData();
+  const topVolunteersData = prepareTopVolunteersData();
+  const timelineData = prepareTimelineData();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <PageHeader
         title="Inteligencia y métricas"
         description="Analiza desempeño, impacto y asignación de recursos para tomar decisiones basadas en datos."
@@ -221,7 +296,8 @@ const ReportsPage = () => {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-4">
+          {/* Métricas principales */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Misiones totales"
               value={formatNumber(organizationReport?.tasks?.total ?? 0)}
@@ -232,6 +308,11 @@ const ReportsPage = () => {
               tone="warning"
             />
             <StatCard
+              title="Misiones completadas"
+              value={formatNumber(organizationReport?.tasks?.byStatus?.COMPLETED ?? 0)}
+              tone="success"
+            />
+            <StatCard
               title="Reconocimientos otorgados"
               value={formatPoints(organizationReport?.recognition?.totalPointsAwarded ?? 0)}
               tone="success"
@@ -240,27 +321,161 @@ const ReportsPage = () => {
               title="Tasa de cumplimiento"
               value={formatPercentage(organizationReport?.assignments?.completionRate)}
             />
+            <StatCard
+              title="Voluntarios activos"
+              value={formatNumber(organizationReport?.topVolunteers?.length ?? 0)}
+            />
+            <StatCard
+              title="Asignaciones totales"
+              value={formatNumber(organizationReport?.assignments?.total ?? 0)}
+            />
+            <StatCard
+              title="Tasa de éxito"
+              value={formatPercentage(
+                organizationReport?.assignments?.total > 0
+                  ? (organizationReport?.assignments?.completed / organizationReport?.assignments?.total) * 100
+                  : 0
+              )}
+              tone="success"
+            />
           </div>
+
+          {/* Gráficas */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Gráfica de barras - Tareas por estado */}
+            {statusData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Tareas por Estado</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={statusData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#3b82f6" name="Cantidad" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Gráfica de pastel - Distribución por categoría */}
+            {categoryData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Distribución por Categoría</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Gráfica de líneas - Tendencia temporal */}
+            {timelineData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Tendencia de Tareas (Últimos 6 meses)</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={timelineData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="tareas" stroke="#10b981" strokeWidth={2} name="Tareas creadas" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Gráfica de barras - Top voluntarios */}
+            {topVolunteersData.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-semibold text-ink mb-4">Top 10 Voluntarios</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={topVolunteersData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={100} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="misiones" fill="#8b5cf6" name="Misiones completadas" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+
+          {/* Gráfica de urgencia */}
+          {urgencyData.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-ink mb-4">Distribución por Urgencia</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={urgencyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#f59e0b" name="Cantidad" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Top voluntarios - Lista */}
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-ink">Top voluntarios</h2>
+            <h2 className="text-lg font-semibold text-ink mb-4">Top Voluntarios</h2>
             <div className="mt-4 divide-y divide-slate-200">
-              {organizationReport?.topVolunteers?.map((volunteer) => (
-                <div key={volunteer.volunteerId} className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-sm font-semibold text-ink">{volunteer.fullName ?? 'Voluntario'}</p>
-                    <p className="text-xs text-muted">{volunteer.email}</p>
+              {organizationReport?.topVolunteers?.length > 0 ? (
+                organizationReport.topVolunteers.map((volunteer, index) => (
+                  <div key={volunteer.volunteerId} className="flex items-center justify-between py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                        #{index + 1}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-ink">{volunteer.fullName ?? 'Voluntario'}</p>
+                        <p className="text-xs text-muted">{volunteer.email}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-primary">
+                        {formatNumber(volunteer.assignmentsCompleted)} misiones
+                      </p>
+                      {volunteer.pointsEarned && (
+                        <p className="text-xs text-muted">{formatPoints(volunteer.pointsEarned)} puntos</p>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-sm font-semibold text-primary">
-                    {formatNumber(volunteer.assignmentsCompleted)} misiones
-                  </p>
-                </div>
-              )) ?? <p className="text-sm text-muted">Sin datos suficientes.</p>}
+                ))
+              ) : (
+                <p className="text-sm text-muted py-4">Sin datos suficientes.</p>
+              )}
             </div>
           </div>
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-ink">Matriz de misiones</h2>
-            <TaskTable tasks={tasks} />
-          </div>
+
+          {/* Matriz de misiones */}
+          {tasks.length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-ink">Matriz de Misiones</h2>
+              <TaskTable tasks={tasks} />
+            </div>
+          )}
         </>
       )}
     </div>
@@ -268,6 +483,3 @@ const ReportsPage = () => {
 };
 
 export default ReportsPage;
-
-
-
