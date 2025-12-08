@@ -10,19 +10,19 @@ const basePlans = [
   {
     name: 'FREE',
     price: 0,
-    features: ['1 evento activo', '5 tareas por evento', 'Funciones básicas', 'Soporte por email'],
+    features: ['1 evento activo', '5 tareas por evento', 'Soporte por email'],
     description: 'Ideal para comenzar',
   },
   {
     name: 'BASIC',
-    price: 49,
-    features: ['Hasta 50 voluntarios', '10 tareas activas', 'Matching con IA', 'Reportes básicos', 'Gestión de eventos', 'Soporte por email'],
+    price: 29,
+    features: ['10 eventos activos', '50 tareas por evento', 'Matching con IA', 'Analytics básico', 'Soporte por email'],
     description: 'Para organizaciones pequeñas',
   },
   {
-    name: 'PREMIUM',
+    name: 'PROFESSIONAL',
     price: 99,
-    features: ['Voluntarios ilimitados', 'Tareas ilimitadas', 'IA avanzada de matching', 'Reportes y analytics completos', 'Tracking GPS en tiempo real', 'API personalizada', 'Soporte prioritario 24/7'],
+    features: ['Eventos ilimitados', 'Tareas ilimitadas', 'IA Predictiva', 'Analytics avanzado', 'Soporte por chat'],
     description: 'Máximo impacto para tu organización',
     popular: true,
   },
@@ -32,7 +32,7 @@ const basePlans = [
 const enterprisePlan = {
   name: 'ENTERPRISE',
   price: 299,
-  features: ['Todo lo de PREMIUM', 'Integraciones personalizadas', 'Gestor de cuenta dedicado', 'Soporte técnico prioritario 24/7', 'SLA garantizado 99.9%', 'Capacitación personalizada', 'Consultoría estratégica'],
+  features: ['Todo PROFESSIONAL', 'Integraciones personalizadas', 'Soporte dedicado', 'SLA garantizado'],
   description: 'Trato personalizado para grandes organizaciones',
   enterprise: true,
 };

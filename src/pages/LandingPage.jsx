@@ -323,7 +323,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Básico</h3>
                 <div className="mb-4">
-                  <span className="text-4xl font-bold text-slate-900">$49</span>
+                  <span className="text-4xl font-bold text-slate-900">$29</span>
                   <span className="text-slate-600"> / mes</span>
                 </div>
                 <p className="text-slate-600 text-sm">
@@ -334,11 +334,11 @@ export default function LandingPage() {
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-slate-700">Hasta 50 voluntarios</span>
+                  <span className="text-slate-700">10 eventos activos</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-slate-700">10 tareas activas</span>
+                  <span className="text-slate-700">50 tareas por evento</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
@@ -346,11 +346,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-slate-700">Reportes básicos</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-slate-700">Gestión de eventos</span>
+                  <span className="text-slate-700">Analytics básico</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
@@ -366,7 +362,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Plan Premium Organizaciones */}
+            {/* Plan Professional Organizaciones */}
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl border-2 border-blue-600 p-8 shadow-2xl transform hover:scale-105 transition-all relative">
               <div className="absolute top-0 right-6 -translate-y-1/2">
                 <span className="bg-amber-400 text-slate-900 px-4 py-1 rounded-full text-sm font-bold shadow-lg">
@@ -378,7 +374,7 @@ export default function LandingPage() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
                   <SparklesIcon className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
+                <h3 className="text-2xl font-bold text-white mb-2">Professional</h3>
                 <div className="mb-4">
                   <span className="text-4xl font-bold text-white">$99</span>
                   <span className="text-blue-100"> / mes</span>
@@ -391,7 +387,7 @@ export default function LandingPage() {
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-white font-medium">Voluntarios ilimitados</span>
+                  <span className="text-white font-medium">Eventos ilimitados</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
@@ -399,23 +395,15 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-white font-medium">IA avanzada de matching</span>
+                  <span className="text-white font-medium">IA Predictiva</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-white font-medium">Reportes y analytics completos</span>
+                  <span className="text-white font-medium">Analytics avanzado</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-white font-medium">Tracking GPS en tiempo real</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-white font-medium">API personalizada</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-white font-medium">Soporte prioritario 24/7</span>
+                  <span className="text-white font-medium">Soporte por chat</span>
                 </li>
               </ul>
 
@@ -423,7 +411,7 @@ export default function LandingPage() {
                 to="/auth/register/organization"
                 className="w-full block text-center bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold shadow-lg"
               >
-                Comenzar Premium
+                Comenzar Professional
               </Link>
             </div>
           </div>
