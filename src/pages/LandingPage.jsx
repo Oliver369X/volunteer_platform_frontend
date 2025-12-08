@@ -5,7 +5,8 @@ import {
   SparklesIcon, 
   ChartBarIcon,
   ShieldCheckIcon,
-  LightBulbIcon
+  LightBulbIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 
 export default function LandingPage() {
@@ -250,8 +251,196 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+              Planes Diseñados para Ti
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Ya seas voluntario u organización, tenemos el plan perfecto para maximizar tu impacto social
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Plan Voluntario */}
+            <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 hover:border-blue-300 hover:shadow-xl transition-all">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                  <HeartIcon className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Voluntario</h3>
+                <div className="mb-4">
+                  <span className="text-4xl font-bold text-slate-900">Gratis</span>
+                  <span className="text-slate-600"> / siempre</span>
+                </div>
+                <p className="text-slate-600 text-sm">
+                  Perfecto para personas que quieren ayudar
+                </p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Acceso a todas las oportunidades</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Matching inteligente con IA</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Sistema de gamificación</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Certificados digitales</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Rankings y logros</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Perfil personalizado</span>
+                </li>
+              </ul>
+
+              <Link
+                to="/auth/register/volunteer"
+                className="w-full block text-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              >
+                Comenzar Gratis
+              </Link>
+            </div>
+
+            {/* Plan Básico Organizaciones */}
+            <div className="bg-white rounded-2xl border-2 border-slate-200 p-8 hover:border-blue-300 hover:shadow-xl transition-all">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
+                  <UsersIcon className="h-8 w-8 text-emerald-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Básico</h3>
+                <div className="mb-4">
+                  <span className="text-4xl font-bold text-slate-900">$49</span>
+                  <span className="text-slate-600"> / mes</span>
+                </div>
+                <p className="text-slate-600 text-sm">
+                  Ideal para organizaciones pequeñas
+                </p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Hasta 50 voluntarios</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">10 tareas activas</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Matching con IA</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Reportes básicos</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Gestión de eventos</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-slate-700">Soporte por email</span>
+                </li>
+              </ul>
+
+              <Link
+                to="/auth/register/organization"
+                className="w-full block text-center bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
+              >
+                Empezar Ahora
+              </Link>
+            </div>
+
+            {/* Plan Premium Organizaciones */}
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl border-2 border-blue-600 p-8 shadow-2xl transform hover:scale-105 transition-all relative">
+              <div className="absolute top-0 right-6 -translate-y-1/2">
+                <span className="bg-amber-400 text-slate-900 px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                  Popular
+                </span>
+              </div>
+              
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
+                  <SparklesIcon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-2">Premium</h3>
+                <div className="mb-4">
+                  <span className="text-4xl font-bold text-white">$99</span>
+                  <span className="text-blue-100"> / mes</span>
+                </div>
+                <p className="text-blue-100 text-sm">
+                  Para organizaciones que buscan el máximo impacto
+                </p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-white font-medium">Voluntarios ilimitados</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-white font-medium">Tareas ilimitadas</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-white font-medium">IA avanzada de matching</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-white font-medium">Reportes y analytics completos</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-white font-medium">Tracking GPS en tiempo real</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-white font-medium">API personalizada</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckIcon className="h-5 w-5 text-amber-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-white font-medium">Soporte prioritario 24/7</span>
+                </li>
+              </ul>
+
+              <Link
+                to="/auth/register/organization"
+                className="w-full block text-center bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold shadow-lg"
+              >
+                Comenzar Premium
+              </Link>
+            </div>
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-slate-600 mb-4">
+              ¿Ya tienes una cuenta?{' '}
+              <Link to="/auth/login" className="text-blue-600 hover:text-blue-700 font-semibold underline">
+                Inicia sesión aquí
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-12 shadow-2xl">
             <h2 className="text-4xl font-bold text-white mb-4">
